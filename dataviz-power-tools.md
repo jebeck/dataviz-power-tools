@@ -91,9 +91,9 @@ If you want to be successful at data visualization, what you need beyond an unde
 - performance
 
 Note:
-There are three reasons to use the SVG group element: organization, interaction, and performance.
+The group element is in many ways parallel to HTML's `<div>` element in that it has no default presentation attributes of its own.
 
-(IF NEED MORE: Add an explanation about parallel to HTML `<div>`.)
+You can probably get away with *not* using SVG groups to a far greater extent than if you tried not using any `<div>`s in your HTML, but there are three good reasons why you shouldn't: organization, interaction, and performance.
 
 
 ### *no* groups and *dis*organization
@@ -155,11 +155,14 @@ And groups also give us easily accessible hooks for layering on interactions con
 Note:
 Finally, using groups is actually more efficient and performant than not using them.
 
-Looking at this example for experimentation purposees (we'll be seeing more of this toy example later), we've got a scatterplot of 5,000 circles. If we want to shift them all, we can press the 'Shift' button, and a timer tells us it takes a negligible amount of time to do this. Well, spoiler: this is doing it the *smart* way, by applying a `transform` to a `<g>` element that contains all the circles. What if we don't do it the smart way? What if we select all the circles and apply a `transform` to each? (Click the 'Slow?' checkbox next to the 'Shift' button, and you'll see.) Not doing it the smart way is greater than a 10x performance hit, and the more complex a visualization gets (with more and more layers of information and elements), the more that's going to hurt.
+Looking at this example for experimentation purposees (we'll be seeing more of this toy example later), we've got a scatterplot of 5,000 circles. If we want to shift them all, we can press the 'Shift' button, and a timer tells us it takes a negligible amount of time to do this. Well, spoiler: this is doing it the *smart* way, by applying a `transform` to a `<g>` element that contains all the circles. What if we don't do it the smart way? What if we select all the circles and apply a `transform` to each? (Click the 'Slow?' checkbox next to the 'Shift' button, and you'll see.) Not doing it the smart way is greater than a 10x performance hit, and the more complex a visualization gets (with more and more layers of information and elements), the more that kind of thing is going to hurt.
 
 
 
 ## profiling performance
+
+Note:
+Now we've seen one example of how a small change - choosing to wrap a set of `<circle>` elements in a `<g>` element or not - can have a big impact on performance, so let's dig a little deeper into this topic of performance.
 
 
 ### interactive data viz is `_____`
@@ -187,9 +190,9 @@ Snappy, crisp, and smooth is not always what we get, however, especially in the 
 1. record a Timeline
 
 Note:
-The three profiling tools I use most are putting timers in your JavaScript, the framerate meter in Chrome's developer tools, and the Timeline tool in Chrome's developer tools.
+The three profiling tools I use the most are putting timers in your JavaScript, the framerate meter in Chrome's developer tools, and the Timeline recording tool in Chrome's developer tools. The framerate meter is, as far as I know, unique to Chrome, but other browsers have profiling tools similar to the Timeline.
 
-Some of these tools work well with each other, and know which tool to use when and for what is important. So let's dive in!
+Knowing which tool or tools to use when and for what is important, so we'll also talk about that.
 
 
 ### timers
@@ -203,15 +206,17 @@ console.log('Time elapsed is', new Date() - start);
 
 try:
 ```JavaScript
-console.time('Label');
+console.time('functionName');
 ...
-console.timeEnd('Label');
+console.timeEnd('functionName');
 ```
 
 Note:
 Putting timers into your JavaScript is a pretty obvious beginner technique for profiling performance. I regularly wrap a timer around the main render method in all my data visualizations, because rendering - that is, manipulating the DOM to reflect the data being visualized - is often, if not always, the most expensive part of the code for a visualization, performance-wise.
 
-The problem with timers is that if you put them in the wrong place, you won't learn anything. If you have *no idea* what or where the cause of a performance problem is, timers aren't going to help you.
+I prefer to use the `console.time` and `console.timeEnd` methods in Chrome because then I don't have to calculate the elapsed time myself.
+
+The problem with timers is that if you put them in the wrong place, you won't learn anything. And if you have *no idea* what or where the cause of a performance problem is, timers aren't going to help you.
 
 So let's move on to the other two tools, which can help you *find* performance problems.
 
@@ -243,7 +248,7 @@ Now here's another example of the same interaction but when *five* thousand data
 ![Chrome's FPS meter](images/fps-meter.png 'Chrome's FPS Meter')
 
 Note:
-This diagram comes straight from Chrome's documentation on the developer tools, and it points out the four things in the FPS meter display: the "current" framerate (more on that in a second), the range from minimum to maximum framerate, a histogram showing the frequency of certain framerate values, and a timeline graph of the framerate on the page.
+This diagram comes straight from Chrome's documentation on the developer tools, and it points out the four things that are in the FPS meter display: the "current" framerate (more on that in a second), the range from minimum to maximum framerate, a histogram showing the frequency of certain framerate values, and a timeline graph of the framerate on the page.
 
 
 ### a caveat re: Chrome's FPS meter
@@ -307,7 +312,7 @@ Most users will notice if the framerate is consistently below thirty frames per 
 ### finding problems with the Timeline view
 
 Note:
-So far we've talked about two tools that *aren't* good for finding performance bottlenecks. So what do you use when you *do* need to pin down a problem? I used the Timeline tool in the Chrome dev tools. Using the toy example scatterplot we've seen a couple times now, I'm going to show you how to find a bottleneck I intentionally put in there as an example.
+So far we've talked about two tools that *aren't* good for finding performance bottlenecks. So what do you use when you *do* need to pin down a problem? I use the Timeline tool in the Chrome dev tools. Using the toy example scatterplot we've seen a couple times now, I'm going to show you how to find a bottleneck I intentionally put in there as an example.
 
 
 ### data generation in example visualization
@@ -365,7 +370,9 @@ Here's a GIF of my workflow setting up and recording a timeline of a particular 
 - (divisions into separate horizontal blocks [often not significant](http://stackoverflow.com/questions/20627082/what-are-this-gap-mean-in-chrome-devtools-profile-flame-chart/20652758#20652758))
 
 Note:
-Finding bottlenecks by looking at a timeline is more of an art than a science, and you'll get better at it with practice. The most important thing to remember is that width represents time, so you're looking for particularly wide things (or a series of things) that don't make sense. Also important to note - and this is something it took me a while to track down in the Stack Overflow answer linked here - is that the splitting up of something you expect to be a single function call into adjacent horizonatal blocks is common and not significant in most cases. That is, it doesn't have to do with your code, but rather with how the Chrome profiler is doing the statistical sampling it does to draw the Timeline's flame chart.
+Finding bottlenecks by looking at a timeline is more of an art than a science, and you'll get better at it with practice. The most important thing to remember is that width represents time, so you're looking for particularly wide things (or a series of things) that don't make sense. The vertical dimension represents your call stack, and it's not significant for performance - it doesn't matter if you have a skyscraper of a callstack as long as it's fast - that is, not wide.
+
+Another important thing to note - and this is something it took me a while to track down to the Stack Overflow answer linked here - is that the splitting up of something you expect to be a single function call into adjacent horizonatal blocks is common and not significant in most cases. That is, it doesn't have to do with your code, but rather with how the Chrome profiler is doing the statistical sampling it does to draw the Timeline's flame chart.
 
 
 #### Timeline for `generateData`
@@ -388,7 +395,7 @@ And now here's the flame chart from the timeline for the `generateDataSlow` vers
 ## improving performance
 
 Note:
-Now that we've covered the most useful tools for profiling performance issues in a complex data visualization, let's briefly talk about some of the general strategies and tools for coding high-performance data visualizations.
+OK, so that's it for what are, in my opinion, the most useful tools for profiling performance issues in a complex data visualization. So let's briefly talk about some of the general strategies and tools for coding high-performance data visualizations.
 
 
 ### general strategies
@@ -408,7 +415,7 @@ If I was asked to distill everything I've learned about making performant intera
 Example: horizontal-scrolling timeline.
 
 Note:
-I've spent a lot of time over the past couple years working on horizontally scrolling timeline visualizations of data. There are two basic strategies for implementing any kind of scrolling timeline data display: you can render a very wide SVG and use the browser's native scrolling capabilities for navigation, or you can render an SVG exactly the size of the portion of the timeline currently in view and attach listeners to mouse events and touch events to change what's rendered within the SVG as the user interacts with the display. At first, I thought the second strategy made more sense. Rendering a very large SVG, the vast majority of which is not in view, seemed odd to me.
+I've spent a lot of time over the past couple years working on horizontally scrolling timeline visualizations of data. There are two basic strategies for implementing any kind of scrolling timeline data display: you can render a very wide SVG and use the browser's native scrolling capabilities for navigation, or you can render an SVG exactly the size of the portion of the timeline currently in view and attach listeners to mouse events and touch events to change what's rendered within the SVG as the user interacts with the display - you could call this a "virtual scrolling" approach. At first, I thought the second strategy made more sense. Rendering a very large SVG, the vast majority of which is not in view, seemed odd to me.
 
 However, I've since changed my tune, for the simple reason that the browser-native strategy allows you to leverage *all* of the under-the-hood optimization that the browser vendors have put into (and will continue to build into, in the future) something like image scrolling performance. In this particular example - and I suspect in other parallel examples - that optimization yields significant performance gains over the JavaScript strategy.
 
@@ -426,7 +433,7 @@ And here's my evidence for what I just said. With a toy example of a horizontal 
 ![zipline-style scrolling](images/zipline-scrolling.gif 'zipline-style scrolling')
 
 Note:
-But now, taking a minimally different example, where the only difference is the choice to effect the horizontal scrolling timeline display by way of a very large SVG and browser-native scrolling, we find that the running average framerate up around fifty frames per second.
+But now, taking a minimally different example, where the only difference is the choice to effect the horizontal scrolling timeline display by way of a very large SVG and browser-native scrolling, we find that the running average framerate is up around fifty frames per second.
 
 
 ### code for examples
@@ -475,7 +482,7 @@ Here's a great example from bl.ocks illustrating node reuse. As the user scrolls
 <img data-src="images/PourOver.png" title="PourOver" alt="PourOver logo" style="border: none; box-shadow: none;"/>
 
 Note:
-There are a couple of great open-source JavaScript libraries that provide utilties specifically for performing very fast filtering on very large datasets - hundreds of thousands of items - in the browser. If you have a performance bottleneck due to filtering the data needed to effect an interaction, using one of these libraries may help immensely.
+So now we've covered two general strategies for coding high-performing data visualizations. The last couple tools I want to introduce you to today are two open-source JavaScript libraries that provide utilties for dealing with very large datasets - up to hundreds of thousands of items - in the browser. These are primarily useful if you have a performance bottleneck due to filtering the data needed to effect an interaction.
 
 
 ### crossfilter
@@ -486,7 +493,7 @@ There are a couple of great open-source JavaScript libraries that provide utilti
     + map-reduce on (sub-)groups
 
 Note:
-Crossfilter was authored by some of the same developers who created D3 (including Mike Bostock). I think it should probably be your first choice for a filtering helper because it provides a real wealth of functionality, including all sorts of numerical querying - for exact values, values in a range, and there's even a way to implement union filters (less than 5 and greater than 10, for example) quite easily. You can also divide the data into groups and reduce them in a variety of ways, including custom reductions.
+Crossfilter was authored by some of the same developers who created D3 (including Mike Bostock). I think it should probably be your first choice for a filtering helper because it provides a real wealth of functionality, including all sorts of numerical querying - for exact values, values in a range, and there's even a way to quite easily implement union filters (values less than 5 and greater than 10, for example). You can also divide the data into groups and reduce them in a variety of ways, including custom reductions.
 
 
 ### PourOver
@@ -495,7 +502,7 @@ Crossfilter was authored by some of the same developers who created D3 (includin
 - works well for *categorical* data
 
 Note:
-The original use case for PourOver is essentially client-side faceted search. If your data or your interactions on top of your data fit this use case - think tag filters in many combinations - then PourOver would definitely be worth checking out.
+The original use case for PourOver is essentially client-side faceted search. If your data or your interactions on top of your data fit this use case - think tag filters in many combinations - then PourOver would definitely be worth checking out, but it doesn't provide the same depth of functionality as Crossfilter does.
 
 
 
