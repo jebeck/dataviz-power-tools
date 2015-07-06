@@ -8,6 +8,9 @@
 
 ## data visualization on the web
 
+Note:
+Interactive data visualization with JavaScript is thriving, and it's a really exciting and collaborative sub-community within the broader webdev community, but that's not to say that working in this space is rainbows and sparkles, all the time. There are a lot of challenges in coding a highly interactive interface on top of a large, real-world dataset. In fact, I think it's fair to say that what's in this talk is everything I wish someone had told *me* before I embarked on the project of building a large and complex data visualization library. I'm going to share with you the toolset I've gathered for myself as a result of the work I've been doing for the last couple of years; I hope you'll find it useful!
+
 
 <img data-src="images/D3.png" title="D3.js logo" alt="D3.js logo" style="border: none; box-shadow: none;"/>
 
@@ -16,11 +19,7 @@
 <small>Image source: "<a href="https://commons.wikimedia.org/wiki/File:SVG_logo.svg#/media/File:SVG_logo.svg">SVG logo</a>" by <a rel="nofollow" class="external text" href="http://www.w3.org/Graphics/SVG/">W3C</a>. Licensed under <a href="http://creativecommons.org/licenses/by/2.5" title="Creative Commons Attribution 2.5">CC BY 2.5</a> via <a href="//commons.wikimedia.org/wiki/">Wikimedia Commons</a></small>
 
 Note:
-Interactive data visualization with JavaScript is thriving, and it's a really exciting and collaborative sub-community within the broader webdev community.
-
-Today I'll be focusing on the most widely-used toolset in interactive dataviz on the web - using the D3 JavaScript library to build visualizations in SVG.
-
-All in all, this talk is one thing: everything I wish someone had told *me* before I embarked on the project of building a large and complex data visualization library.
+What I'll be focusing on today is the most widely-used toolset in interactive dataviz on the web: this is D3, used to build visualizations in SVG. If you're not familiar with SVG, it's an XML-based vector image format: what this means is that all the components of an SVG image are XML elements that sit in the DOM very much like HTML elements - most SVG properties can even be styled via CSS stylesheets.
 
 
 ## outline  
@@ -32,142 +31,131 @@ All in all, this talk is one thing: everything I wish someone had told *me* befo
   1. dealing with large datasets
 
 Note:
-We'll start with some basic best practices when using D3 and SVG (and sneak in some intro to D3 stuff for those of you not already familiar with it).
+Let's pause for a second though - I want to give you a preview of what's to come.
 
-Our next topic will be profiling performance problems in a data visualization. And hey, guess what? A lot of this stuff applies to any front-end JavaScript project with significant interactive elements.
+First, we'll start by talking about what I think is one of the most important best practices when using D3 with SVG - using SVG groups.
 
-After we've learned a bit about how to *find* performance problems in a data visualization, we'll move on to talking about a couple of additional tools for solving particular types of problems, particularly problems relating to the scale of real-world data sets.
+That discussion will lead us directly into a discussion around profiling performance problems in a data visualization. I'll spend the most time on this because it's the thing I most wish someone had showed *me* and also because it has the broadest applicability to other front-end applications. What we'll discuss in terms of profiling should apply to any front-end JavaScript project that has a lot of interactive elements.
+
+After we've learned a bit about how to *find* performance problems in a data visualization, we'll wrap up by going over a couple of additional strategies and tools for solving particular types of problems.
 
 
 
 ## basics & best practices
 
 
-## best practices with D3
+## why D3 + SVG?
 
-- start with HTML and/or SVG
-- `<canvas>` is the option of last resort
-
-Note:
-At its core, what D3 truly *is* is a JavaScript library for binding data to objects in the DOM. Most commonly, people use D3 to bind data to objects that are SVG elements like `<circle>` or `<rect>`, but binding to HTML elements is equally valid: D3 doesn't care.
-
-I say `<canvas>` is the option of last resort because `<canvas>` is a *raster* image format (as opposed to a *vector* image format like SVG). There is only one element in the DOM when you create something with `<canvas>` - that's the `<canvas>` element itself. So you *lose* a lot of the power of D3 if you jump straight into `<canvas>`. It's possible, but it doesn't really make sense as the tool to start with.
-
-
-### why D3 + HTML and/or SVG?
-
-core function of D3 = bind data to DOM elements
-
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="864" height="432" viewbox="0 0 720 240">
-  <g transform="translate(0,128)">
-    <g transform="translate(300)">
-      <circle r="110" style="fill: rgb(49, 130, 189); fill-opacity: 0.2;"></circle>
-      <text y="-120" dy=".35em" text-anchor="middle" style="font-size: 18px; font-weight: bold;">Data</text>
-      <text x="-50" dy=".35em" text-anchor="middle" style="font-size: 18px;">Enter</text>
-    </g>
-    <text x="360" dy=".35em" text-anchor="middle"style="font-size: 18px;">Update</text>
-    <g transform="translate(420)">
-      <circle r="110" style="fill: rgb(230, 85, 13); fill-opacity: 0.2;"></circle>
-      <text y="-120" dy=".35em" text-anchor="middle" style="font-size: 18px; font-weight: bold;">Elements</text>
-      <text x="50" dy=".35em" text-anchor="middle" style="font-size: 18px;">Exit</text>
-    </g>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="864" height="450" viewbox="0 0 960 500">
+  <rect id="backgroundRect" width="960" height="500" x="0" y="0" fill="#ECECEC"></rect>
+  <g class="thisIsAnExampleGroup">
+    <text x="125" y="130">{id: 'abc', value: 5}</text>
+    <circle cx="810" cy="100" r="14.142135623730951" fill="#279191"></circle>
+    <line x1="435" x2="735" y1="130" y2="100" stroke-width="1" stroke="black"></line>
+    <text x="810" y="100" class="centered">&lt;circle/&gt;</text>
+  </g>
+  <g class="thisIsAnExampleGroup">
+    <text x="125" y="210">{id: 'def', value: 10}</text>
+    <circle cx="810" cy="200" r="20" fill="#279191"></circle>
+    <line x1="445" x2="735" y1="210" y2="200" stroke-width="1" stroke="black"></line>
+    <text x="810" y="200" class="centered">&lt;circle/&gt;</text>
+  </g>
+  <g class="thisIsAnExampleGroup">
+    <text x="125" y="290">{id: 'ghi', value: 8}</text>
+    <circle cx="810" cy="300" r="17.88854381999832" fill="#279191"></circle>
+    <line x1="435" x2="735" y1="290" y2="300" stroke-width="1" stroke="black"></line>
+    <text x="810" y="300" class="centered">&lt;circle/&gt;</text>
+  </g>
+  <g class="thisIsAnExampleGroup">
+    <text x="125" y="370">{id: 'jkl', value: 3}</text>
+    <circle cx="810" cy="400" r="10.95445115010332" fill="#279191"></circle>
+    <line x1="435" x2="735" y1="370" y2="400" stroke-width="1" stroke="black"></line>
+    <text x="810" y="400" class="centered">&lt;circle/&gt;</text>
   </g>
 </svg>
 
-<small>Image source: [Thinking with Joins](http://bost.ocks.org/mike/join/ 'Mike Bostock: Thinking with Joins')</small>
-
 Note:
-So: the core function of D3 is binding data to DOM elements. What does that mean? This Venn diagram illustrates D3's selections, which are your accessors into the binding between data and DOM elements.
+At its core, what D3 truly *is* is a JavaScript library for binding data to elements in the DOM. Most commonly, people use D3 to bind data to objects that are SVG elements like `<circle>` or `<rect>`, but binding to HTML elements is equally valid: D3 doesn't care.
 
-The "enter" selection provides access to datum-element pairs where the DOM elements haven't actually been created yet. A little strange, I know. Basically, the thing to remember is that this is the selection you grab after you've bound your data and you want to create new elements.
+That said, `<canvas>` should be your option of last resort because `<canvas>` is a *raster* image format (as opposed to a *vector* image format like SVG). There is only one element in the DOM when you create something with `<canvas>` - that's the `<canvas>` element itself. So you *lose* a lot of the power of D3 if you jump straight into `<canvas>` because you can't bind your data to the element or elements plural in the DOM that are representing each datum.
 
-The "update" selection provides access to the datum-element pairs where the element already exists in the DOM, but now it might need to change - in position or size, for example - because the datum the element is bound to has changed. Some projects won't need to use this selection, ever. Some data doesn't change. That's not unusual. But if you're visualizing data that updates in real time, the update selection is incredibly useful.
+Once you've learned all about the interface D3 provides to bind data to elements in the DOM and manipulate them - this is through three "selections" in the D3 parlance: the enter, update, and exit selections - there really isn't all that much in terms of major concepts to learn. D3 provides a lot of other useful functionality for manipulating and representing data according to some very common data visualization design patterns, but in a lot of ways D3 is a pretty concise, elegant project. The real difficulty, in my experience, in becoming proficient at data visualization with D3 and SVG is the SVG half of that equation.
 
-The "exit" selection is the opposite of the enter selection. It provides access to the datum-element pairs where the element already exists in the DOM but the data has just been unbound. When do you unbind data? One concrete example - and incidentally the type of visualization I've spent the most time developing - is when you're implementing a scrolling timeline visualization. So when the user scrolls away from the window of time initially rendered, you can reset the data you're binding to your DOM elements with only the data corresponding to what's *now* currently in view, then grab the exit selection to remove the elements from the DOM that were bound to the data that's no longer in view.
-
-
-### a simple bar chart <small>(in code)</small>
-
-```JavaScript
-svg.selectAll('rect.bar')
-  .data(data)
-  .enter()
-  .append('rect')
-  .attr({
-    x: function(d) { return xScale(d.framework); },
-    y: function(d) { return yScale(d.value); },
-    width: xScale.rangeBand(),
-    height: function(d) { return margin.top + h - yScale(d.value); },
-    fill: '#20479D',
-    'class': 'bar'
-  });
-```
-
-Note:
-Here's a concrete example to illustrate. To create the bars for a very simple bar chart, we start by selecting all the SVG rects with the class "bar" within the SVG we've already set up. (This is the most counter-intuitive part, because this selection is currently *empty* because we haven't added any rects to the SVG yet.) We bind our array of data to this selection, then use `enter()` to grab the enter (sub-)selection. Once we have the enter selection, we can use a variety of the methods D3 provides (that is, `append` and `attr` methods here) to specify what action we want to be taken for each of the items in our current (sub-)selection.
-
-
-### a simple bar chart <small>(in the browser)</small> 
-
-<iframe width="960px" height="600px" seamless data-src="http://bl.ocks.org/jebeck/raw/90a75d5ba71c82df968e">
-
-Note:
-Here's what a such a very simple bar chart looks like in the browser.
-
-
-### the world is flat
-
-<img data-src="images/flat-SVG.png" width="800px" title="flat SVG" alt="SVG with flat internal structure" style="border: none; box-shadow: none;"/>
-
-Note:
-If we create everything exactly as shown just previously, we'll get a flat structure like this - everything on the same level inside the `<svg>` tag. Aside from being messy and hard to parse at a glance, this has some disadvantages in terms of limiting the ways you can build out the chart - for example, by adding some interactivity, as we'll see in a moment. And it also has some disadvantages in terms of performance.
-
-
-### let's make it round
-
-<img data-src="images/structured-SVG.png" width="850px" title="structured SVG" alt="SVG with groups for internal structure" style="border: none; box-shadow: none;"/>
-
-Note:
-The alternative to a completely flat structure is using the SVG `<g>` element to - you guessed it - group related elements. If you want to relate this to HTML, the closest parallel to the `<g>` element is `<div>`. The `<g>` element doesn't have any default presentation attributes of its own, but it acts a container for other elements, and - crucially - can be used to efficiently effect changes on all of its children, as well as providing a way to better organize the elements in a visualization.
+If you want to be successful at data visualization, what you need beyond an understanding of D3 is a deep knowledge of SVG, which brings me to the first of the power tools I'm going to introduce you to today: SVG group elements.
 
 
 ### `<g>` whiz, aren't groups nice?
 
-<iframe width="960px" height="600px" seamless data-src="http://bl.ocks.org/jebeck/raw/cb801f32fc9777a1b672/">
+- organization
+- interaction
+- performance
 
 Note:
-Just the simple, possibly gimmicky addition of an overly literal "hover" animation on hover in this bar chart is made infinitely easier if all of the elements bound to the same datum - here that's the rect for the bar itself and the `<text>` for the number in the upper-left corner - are children of a single `<g>` element. Here I used a `transform` attribute on the group to change its position on hover, and so both the `<rect>` and the `<text>` move in tandem.
+There are three reasons to use the SVG group element: organization, interaction, and performance.
+
+(IF NEED MORE: Add an explanation about parallel to HTML `<div>`.)
+
+
+### *no* groups and *dis*organization
+
+!['SVG with no internal structure'](images/flat-SVG.png 'SVG with no internal structure')
+
+Note:
+Without groups - with a flat internal structure instead - an SVG gets messy and hard to inspect and debug in your favorite browser's developer tools.
+
+
+### groups and organization
+
+!['SVG with groups for internal structure'](images/structured-SVG.png 'SVG with groups for internal structure')
+
+Note:
+With groups it's much easier to see how elements of different types are being used together to represent each datum.
+
+
+### groups and interaction
+
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="864" height="450" viewbox="0 0 960 500">
+  <rect id="backgroundRect" width="960" height="500" x="0" y="0" fill="#ECECEC"></rect>
+  <g class="thisIsAnExampleGroup">
+    <text x="125" y="130">{id: 'abc', value: 5}</text>
+    <circle cx="810" cy="100" r="14.142135623730951" fill="#279191"></circle>
+    <line x1="435" x2="735" y1="130" y2="100" stroke-width="1" stroke="black"></line>
+    <text x="810" y="100" class="centered">&lt;circle/&gt;</text>
+  </g>
+  <g class="thisIsAnExampleGroup">
+    <text x="125" y="210">{id: 'def', value: 10}</text>
+    <circle cx="810" cy="200" r="20" fill="#279191"></circle>
+    <line x1="445" x2="735" y1="210" y2="200" stroke-width="1" stroke="black"></line>
+    <text x="810" y="200" class="centered">&lt;circle/&gt;</text>
+  </g>
+  <g class="thisIsAnExampleGroup">
+    <text x="125" y="290">{id: 'ghi', value: 8}</text>
+    <circle cx="810" cy="300" r="17.88854381999832" fill="#279191"></circle>
+    <line x1="435" x2="735" y1="290" y2="300" stroke-width="1" stroke="black"></line>
+    <text x="810" y="300" class="centered">&lt;circle/&gt;</text>
+  </g>
+  <g class="thisIsAnExampleGroup">
+    <text x="125" y="370">{id: 'jkl', value: 3}</text>
+    <circle cx="810" cy="400" r="10.95445115010332" fill="#279191"></circle>
+    <line x1="435" x2="735" y1="370" y2="400" stroke-width="1" stroke="black"></line>
+    <text x="810" y="400" class="centered">&lt;circle/&gt;</text>
+  </g>
+</svg>
+
+<!-- TODO: add the interaction here via CSS animations or put the GIF back -->
+
+Note:
+And groups also give us easily accessible hooks for layering on interactions concisely and logically.
 
 
 ### groups and performance
 
-```JavaScript
-svg.selectAll('circle')
-  .attr({
-    transform: 'translate(0,-' + shiftAmount + ')'
-  });
-```
-
-v.
-
-```JavaScript
-svg = svg.append('g');
-...
-svg.attr({
-    transform: 'translate(0,-' + shiftAmount + ')'
-  });
-```
+!['groups and performance'](images/groups-and-performance.gif 'groups and performance')
 
 Note:
-I mentioned previously that *not* using groups also has disadvantages in terms of performance. Here's what I mean by that. If we have a scatterplot with a large amount of data - all tiny circles - and we want to shift all the circles, there could be two ways of doing that. Select all the circles and move each one. Or select a group that contains all the circles and move the whole group by applying a `transform` attribute. It turns out the latter is *significantly* faster.
+Finally, using groups is actually more efficient and performant than not using them.
 
-
-### let's prove it
-
-<iframe width="960px" height="600px" seamless data-src="http://bl.ocks.org/jebeck/raw/816e9e5dc230252d4cc0/">
-
-Note:
-Looking at this example for experimentation purposees (we'll be coming back to this toy example later), we've got a scatterplot of 5,000 circles. If we want to shift them all, we can press the 'Shift' button, and a timer tells us it takes a negligible amount of time to do this. Well, spoiler: this is doing it the *smart* way, by applying a `transform` to a `<g>` element that contains all the circles. What if we don't do it the smart way? (Click the 'Slow?' checkbox next to the 'Shift' button, and you'll see.) Not doing it the smart way is greater than a 10x performance hit, and the more complex a visualization gets (with more and more layers of information and elements), the more that's going to hurt. So use groups, folks!
+Looking at this example for experimentation purposees (we'll be seeing more of this toy example later), we've got a scatterplot of 5,000 circles. If we want to shift them all, we can press the 'Shift' button, and a timer tells us it takes a negligible amount of time to do this. Well, spoiler: this is doing it the *smart* way, by applying a `transform` to a `<g>` element that contains all the circles. What if we don't do it the smart way? What if we select all the circles and apply a `transform` to each? (Click the 'Slow?' checkbox next to the 'Shift' button, and you'll see.) Not doing it the smart way is greater than a 10x performance hit, and the more complex a visualization gets (with more and more layers of information and elements), the more that's going to hurt.
 
 
 
@@ -189,17 +177,19 @@ Just like any experience of a website or web application, we want the experience
 !['Fail Solo'](images/fail-solo.gif 'Fail Solo')
 
 Note:
-Snappy, crisp, and smooth is not always what we get in an interactive data visualization, however, especially in the first iteration.
+Snappy, crisp, and smooth is not always what we get, however, especially in the first iteration. What I'm going to talk about now is the tools I've found most useful for profiling the performance of a data visualization and moving forward from the disappointing first pancake.
 
 
 ### 3 ways to profile performance
 
 1. timers
-1. frame rate meter
+1. framerate meter
 1. record a Timeline
 
 Note:
-In this section I'm going to introduce three of the tools I've found most useful for profiling the performance of a poorly-performing data visualization and finding the root cause of the slowness. These certainly aren't the only tools available for profiling performance, but they are what's - historically - worked best for me. They are (1) putting timers in your JavaScript, (2) turning on the frame rate meter in Chrome's developer tools to get a sense of the average frames per second and interactions that cause severe dips in frame rate, and (3) recording a Timeline (usually of one interaction, triggered by something like a click) in Chrome's developer tools to examine the performance of that interaction in detail.
+The three profiling tools I use most are putting timers in your JavaScript, the framerate meter in Chrome's developer tools, and the Timeline tool in Chrome's developer tools.
+
+Some of these tools work well with each other, and know which tool to use when and for what is important. So let's dive in!
 
 
 ### timers
@@ -219,16 +209,11 @@ console.timeEnd('Label');
 ```
 
 Note:
-Putting timers into your JavaScript is a pretty obvious beginner technique for profiling performance. There are a couple of disadvantages, of course. You can only add or move timers when you're live-coding, not profiling the performance of production code. And putting timers in your code to profile performance requires both having *some* idea of where your performance problems are and that those problems are easily isolated into blocks that can be wrapped with a timer in your raw JavaScript. Sometimes neither of these things is the case.
-I see a lot of people using JavaScript's `Date` constructor to code timers in JavaScript, but this is in many cases unnecessary - most of the modern browsers implement the `console.time` and `console.timeEnd` methods. When you provide the same string identifier to a `time` and `timeEnd` method, you'll get a log statement in the console giving the time between the `time` and `timeEnd`. This can be especially useful if the structure of your code makes it difficult to define a time variable at the start of a timer and pick it up later - with the built-in console timer methods, you don't have to keep track of the start time yourself or do any subtraction to find the elapsed time.
+Putting timers into your JavaScript is a pretty obvious beginner technique for profiling performance. I regularly wrap a timer around the main render method in all my data visualizations, because rendering - that is, manipulating the DOM to reflect the data being visualized - is often, if not always, the most expensive part of the code for a visualization, performance-wise.
 
+The problem with timers is that if you put them in the wrong place, you won't learn anything. If you have *no idea* what or where the cause of a performance problem is, timers aren't going to help you.
 
-### timers exposed
-
-<iframe width="960px" height="600px" seamless data-src="http://bl.ocks.org/jebeck/raw/816e9e5dc230252d4cc0/">
-
-Note:
-Sometimes it's useful to wrap functions attached to certain interactions in your visualization within timers and actually expose the results in the UI as you're prototyping. Here we can see the difference between a slow data generation function and a fast one by paying attention to the logged data generation and data draw times in the UI when we do and don't have the slow checkbox selected for data generation and drawing.
+So let's move on to the other two tools, which can help you *find* performance problems.
 
 
 ### spying on framerate in Chrome
@@ -236,21 +221,21 @@ Sometimes it's useful to wrap functions attached to certain interactions in your
 ![Turning on Chrome's FPS meter](images/Chrome-FPS-meter.gif 'Turning on the Chrome FPS meter')
 
 Note:
-The next technique for profiling performance is to use Chrome's FPS meter.
-Here's how you turn on the FPS meter in Chrome. Open the "drawer" in the Chrome dev tools by clicking the terminal prompt icon in the upper-right corner. Then click on the Rendering tab and select the 'Show FPS meter' checkbox. As long as you keep the devtools open, the FPS meter will be in the upper-right corner of the browser viewport.
+Chrome's framerate meter was honestly a huge revelation for me, after I learned about it and started using it. This GIF is showing you how to turn it on - I won't walk you through the steps, these slides are online for reference. What's important to remember is that you have to leave the developer tools open in order to have the framerate meter in the upper right of the browser viewport. You can minimize the dev tools (and I often do, after popping them out into a separate window), but they have to be open.
 
 
-![invert (high FPS)](images/invert-high-FPS.gif 'inversion animation with high frame rate')
+![invert (high FPS)](images/invert-high-FPS.gif 'inversion animation with high framerate')
 
 Note:
-Here's an example of what it looks like to watch the frame rate meter to profile a certain interaction - in this case the inversion of the y-scale for plotting the data when pressing the 'Invert' button in this toy example that renders a scatterplot of a thousand data points.
+Here's an example of what it looks like to watch the framerate meter to profile a certain interaction - in this case the inversion of the y-scale for plotting the data when pressing the 'Invert' button in this toy example that renders a scatterplot of a thousand data points.
+
 The two things to take most note of here are the FPS, which is a running average - we'll talk about that more in a second - and the range in the upper-right corner, which is thirty to sixty frames per second in this example. (In other words, none of the dips below 60fps that you can see in the timeline graph are falling below 30fps.)
 
 
-![invert (low FPS)](images/invert-low-FPS.gif 'inversion animation with low frame rate')
+![invert (low FPS)](images/invert-low-FPS.gif 'inversion animation with low framerate')
 
 Note:
-Now here's another example of the same interaction but when *five* thousand data points are included in the scatterplot, which has a considerable negative impact on the performance. The average framerate is much lower here, and the lowest dips in the timeline graph fall far below 30fps - look at the range again the upper-right; it now says five to sixty frames per second.
+Now here's another example of the same interaction but when *five* thousand data points are included in the scatterplot, which has a considerable negative impact on the performance. (Performance in data visualization is often a simple numbers game - the more things you're trying to do in or manipulate in the DOM, the worse the performance is going to be.)
 
 
 ### what's in the FPS meter display
@@ -258,7 +243,7 @@ Now here's another example of the same interaction but when *five* thousand data
 ![Chrome's FPS meter](images/fps-meter.png 'Chrome's FPS Meter')
 
 Note:
-This diagram comes straight from Chrome's documentation on the developer tools, and it points out the four things in the FPS meter display: the "current" frame rate (more on that in a second), the range from minimum to maximum frame rate, a histogram showing the frequency of certain frame rate values, and a timeline graph of the framerate on the page.
+This diagram comes straight from Chrome's documentation on the developer tools, and it points out the four things in the FPS meter display: the "current" framerate (more on that in a second), the range from minimum to maximum framerate, a histogram showing the frequency of certain framerate values, and a timeline graph of the framerate on the page.
 
 
 ### a caveat re: Chrome's FPS meter
@@ -266,7 +251,7 @@ This diagram comes straight from Chrome's documentation on the developer tools, 
 it's a running average
 
 Note:
-The most important caveat about using the framerate meter in Chrome is that the main reported metric is a *running* average; it's not really the current framerate, but rather the current of the running average. This means you have to be conscious of how you set up your "tests", and it also means that you can't pinpoint problems very precisely.
+The most important caveat about using the framerate meter in Chrome is that the main reported metric is a *running* average; it's not really the current framerate, but rather the current of the running or moving average. This means you have to be conscious of how you set up your "tests", and it also means that you can't pinpoint problems very precisely.
 
 
 #### the FPS meter is good for...<small>(ballparking)</small>
@@ -319,6 +304,12 @@ Note:
 Most users will notice if the framerate is consistently below thirty frames per second. They might describe the experience as sluggish or the interactions as jerky or laggy.
 
 
+### finding problems with the Timeline view
+
+Note:
+So far we've talked about two tools that *aren't* good for finding performance bottlenecks. So what do you use when you *do* need to pin down a problem? I used the Timeline tool in the Chrome dev tools. Using the toy example scatterplot we've seen a couple times now, I'm going to show you how to find a bottleneck I intentionally put in there as an example.
+
+
 ### data generation in example visualization
 
 ```JavaScript
@@ -356,7 +347,7 @@ function generateDataSlow(n) {
 ```
 
 Note:
-And now here's an alternate version of the same data generation function that's actually a performance bottleneck we'll be able to find in a Timeline profile. This is, unfortunately, inspired by real mistakes I've made. One of the difficulties in dealing with a lot of time series data and having a complex codebase is that sometimes different parts of your code want to see datetimes in different ways, and you end up parsing and re-parsing datetimes between strings, objects, and integers. Because of the complexities involved, datetime parsing and processing is almost always pretty expensive, so these can easily add up into big bottlenecks in performance. This particular example is a little silly, but trust me these kinds of situations can arise spread across a more complex codebase. Here we're generating a native JavaScript `Date` but then immediately transforming it into an ISO-formatted string, then re-parsing it with `Date.parse` to get a Unix time integer and with `moment` to find the day of the week.
+And now here's an alternate version of the same data generation function that's going to be our white whale. This is, unfortunately, inspired by real mistakes I've made. One of the difficulties in dealing with a lot of time series data and having a complex codebase is that sometimes different parts of your code want to see datetimes in different ways, and you end up parsing and re-parsing datetimes between strings, objects, and epoch integers. Because of the complexities involved, datetime parsing and processing is almost always pretty expensive, so these can easily add up into big bottlenecks in performance. This particular example is a little silly, but trust me these kinds of situations can arise spread across a more complex codebase. Here we're generating a native JavaScript `Date` but then immediately transforming it into an ISO-formatted string, then re-parsing it with `Date.parse` to get a Unix time integer and with `moment` to find the day of the week.
 
 
 ### recording a Timeline
@@ -364,8 +355,7 @@ And now here's an alternate version of the same data generation function that's 
 ![record a Timeline in Chrome](images/Chrome-recording-Timeline.gif 'Recording a Timeline in Chrome')
 
 Note:
-To record a Timeline for a particular interaction in Chrome, first set up the UI into whatever state you need it to be in before the interaction you want to profile. Then open the developer tools and go to the Timeline tab. Make sure the Flame Chart View and Frames View buttons are on (highlighted in blue) and press record. Flip back to your app and do whatever interaction you're trying to profile - in this case by clicking the 'Generate and draw data' button. Stop the recording in the dev tools.
-Pay attention to the color coding of the frames in the result - yellow is JavaScript. (The other colors are blue for loading, purple for rendering, and green for painting.) Zoom in on any tall yellow bars - these are JavaScript bottlenecks, or potential bottlenecks.
+Here's a GIF of my workflow setting up and recording a timeline of a particular interaction - in this case the 'Generate & Draw' interaction in the toy example scatterplot. Again, I'm not going to walk you through it step by step, but I'll point out that you'll want to pay particular attention to the color coding of the frames in the result. (Each vertical bar is a frame.) The color coding is blue for loading, purple for rendering, green for painting, and yellow for scripting. You'll want to zoom in on any tall yellow bars - these are the likely JavaScript bottlenecks.
 
 
 ### finding bottlenecks in a Timeline
@@ -383,7 +373,7 @@ Finding bottlenecks by looking at a timeline is more of an art than a science, a
 ![generateData](images/generateData-timeline.png 'Timeline for generateData function')
 
 Note:
-So here's the flame chart from the timeline for the regular generateData function. We see here that generating the data takes less time than drawing it. This makes sense since drawing involves adding elements to the DOM, and DOM manipulation in general is expensive.
+So here's the flame chart from the timeline for the regular `generateData` function. We see here that generating the data takes less time than drawing it. This makes sense since drawing involves adding elements to the DOM, and DOM manipulation in general is expensive.
 
 
 #### Timeline for `generateDataSlow`
@@ -391,14 +381,17 @@ So here's the flame chart from the timeline for the regular generateData functio
 ![generateDataSlow](images/generateDataSlow-timeline.png 'Timeline for generateDataSlow function')
 
 Note:
-And now here's the flame chart from the timeline for the generateDataSlow version of the data generation function. We see here that generating the data is now taking about 3-4 times *longer* than drawing it. This does *not* make sense, so here you'd want to drill down and see what's in those function calls in the call stack(s) below generateDataSlow. If you did that here, you'd see that what's in those function calls is pretty much all calls within moment.js because of the dumb additional time processing we added in the generateDataSlow function.
+And now here's the flame chart from the timeline for the `generateDataSlow` version of the data generation function. We see here that generating the data is now taking about 3-4 times *longer* than drawing it. This does *not* make sense, so here you'd want to drill down and see what's in those function calls in the call stack(s) below `generateDataSlow`. If you did that here, you'd see that what's in those function calls is pretty much all calls within moment.js because of the dumb additional time processing we added in the `generateDataSlow` function.
 
 
 
 ## improving performance
 
-### general strategies
+Note:
+Now that we've covered the most useful tools for profiling performance issues in a complex data visualization, let's briefly talk about some of the general strategies and tools for coding high-performance data visualizations.
 
+
+### general strategies
 
 1. choose browser-native
 1. change the DOM as little as possible
@@ -416,6 +409,7 @@ Example: horizontal-scrolling timeline.
 
 Note:
 I've spent a lot of time over the past couple years working on horizontally scrolling timeline visualizations of data. There are two basic strategies for implementing any kind of scrolling timeline data display: you can render a very wide SVG and use the browser's native scrolling capabilities for navigation, or you can render an SVG exactly the size of the portion of the timeline currently in view and attach listeners to mouse events and touch events to change what's rendered within the SVG as the user interacts with the display. At first, I thought the second strategy made more sense. Rendering a very large SVG, the vast majority of which is not in view, seemed odd to me.
+
 However, I've since changed my tune, for the simple reason that the browser-native strategy allows you to leverage *all* of the under-the-hood optimization that the browser vendors have put into (and will continue to build into, in the future) something like image scrolling performance. In this particular example - and I suspect in other parallel examples - that optimization yields significant performance gains over the JavaScript strategy.
 
 
@@ -459,14 +453,14 @@ The other key lesson I've learned through building complex interactive data visu
 - reusing DOM nodes
 
 Note:
-What I've found most useful is to keep the question of "How much am I changing the DOM?" at the front of my mind when I'm working. Whenever the answer is "a lot", then I start to think about what I could do to avoid changing it that much. Can I aggregate the data or smooth it so that I'm creating or modifying fewer nodes in the DOM? If I'm coding an interaction that involves simultaneously inserting many new nodes and removing stale ones in response to an interaction, is there a way I can *recycle* the nodes I'm due to remove instead of trashing them, thereby reducing the number of new nodes I have to add, either partially or entirely?
+What I've found most useful is to keep the question of "How much am I changing the DOM?" at the front of my mind when I'm working. Whenever the answer is "a lot", then I start to think about what I could do to avoid changing it that much. Can I aggregate the data or smooth it so that I'm creating or modifying fewer nodes in the DOM? If I'm coding an interaction that involves simultaneously inserting many new nodes and removing stale ones in response to an interaction, is there a way I can *recycle* the nodes I'm due to remove instead of trashing them, thereby reducing the number of new nodes I have to add, either partially or entirely? 
 
 <!-- TODO: add a slide illustrating aggregation as a solution - that is, a heat map? -->
 
 
 ### node reuse example
 
-@gmaclennan's fast long-scrolling image grid
+[@gmaclennan's fast long-scrolling image grid](http://bl.ocks.org/gmaclennan/11130600 'bl.ocks: Fast long-scrolling image grid')
 
 <iframe width="960px" height="455px" seamless data-src="http://bl.ocks.org/gmaclennan/raw/11130600/">
 
@@ -474,39 +468,7 @@ Note:
 Here's a great example from bl.ocks illustrating node reuse. As the user scrolls in this image grid, instead of creating new rows as they come into view and destroying the old rows, the strategy is to relocate the old rows into the position(s) where new rows are needed. The result is a fast-scrolling, very-large grid.
 
 
-
-## improving performance
-
 ### dealing with large datasets
-
-
-so you have "big data"...<small>maybe?</small>
-
-- *how* big is **big**?
-- how big is *too big*?
-
-Note:
-"Big data" is a common phrase to hear these days, so common sometimes it seems like the only data anyone talks about is "big." Is your data big? If it is, will you be able to visualize it effectively and interactively in the browser?
-My take on this question is that it doesn't matter if your data is "big" in the "big data" sense. The question should really be whether it's big for the browser or in particular whether it's big for the kind of interactions you want to build on top of it in the browser. So the question should be: is my data big for the browser?
-
-
-in the browser, even small can be *too big*
-
-!['morose cat'](images/morose-cat.gif 'morose cat')
-
-Note:
-And, unfortunately, the browser's idea of "big" can really be quite small.
-
-
-### let's explore
-
-<iframe width="960px" height="600px" seamless data-src="http://bl.ocks.org/jebeck/raw/816e9e5dc230252d4cc0/">
-
-Note:
-Plotting 5,000 nodes in a scatterplot is at the edge of acceptability, depending on what kind of interactions we might need. 10,000 is definitely way too much. If you can't aggregate or smooth your way out of that one and you need interactivity, `<canvas>` may be the way to go.
-
-
-### tools to help
 
 <img data-src="images/Crossfilter.png" title="Crossfilter" alt="Crossfilter" style="border: none; box-shadow: none;"/>
 
@@ -537,4 +499,24 @@ The original use case for PourOver is essentially client-side faceted search. If
 
 
 
-## thank you!
+## in conclusion
+
+
+### learn SVG
+
+
+### profile as you work
+
+  + timers
+  + FPS meter
+  + Timeline
+
+
+### strategize
+
+  + let the browser do the work
+  + touch the DOM as little as possible
+  + use helpers for big data
+
+
+### thank you!
