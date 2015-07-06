@@ -309,7 +309,7 @@ Note:
 Most users will notice if the framerate is consistently below thirty frames per second. They might describe the experience as sluggish or the interactions as jerky or laggy.
 
 
-### finding problems with the Timeline view
+### the Timeline tool
 
 Note:
 So far we've talked about two tools that *aren't* good for finding performance bottlenecks. So what do you use when you *do* need to pin down a problem? I use the Timeline tool in the Chrome dev tools. Using the toy example scatterplot we've seen a couple times now, I'm going to show you how to find a bottleneck I intentionally put in there as an example.
