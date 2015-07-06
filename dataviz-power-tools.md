@@ -117,24 +117,52 @@ With groups it's much easier to see how elements of different types are being us
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="864" height="450" viewbox="0 0 960 500">
   <rect id="backgroundRect" width="960" height="500" x="0" y="0" fill="#ECECEC"></rect>
   <g class="thisIsAnExampleGroup">
+    <animateTransform
+      attributeType="XML"
+      attributeName="transform"
+      type="translate"
+      from="0 0" to="0 -25"
+      dur="250ms"
+      begin="mouseover" />
     <text x="125" y="130">{id: 'abc', value: 5}</text>
     <circle cx="810" cy="100" r="14.142135623730951" fill="#279191"></circle>
     <line x1="435" x2="735" y1="130" y2="100" stroke-width="1" stroke="black"></line>
     <text x="810" y="100" class="centered">&lt;circle/&gt;</text>
   </g>
   <g class="thisIsAnExampleGroup">
+    <animateTransform
+      attributeType="XML"
+      attributeName="transform"
+      type="translate"
+      from="0 0" to="0 -25"
+      dur="250ms"
+      begin="mouseover" />
     <text x="125" y="210">{id: 'def', value: 10}</text>
     <circle cx="810" cy="200" r="20" fill="#279191"></circle>
     <line x1="445" x2="735" y1="210" y2="200" stroke-width="1" stroke="black"></line>
     <text x="810" y="200" class="centered">&lt;circle/&gt;</text>
   </g>
   <g class="thisIsAnExampleGroup">
+    <animateTransform
+      attributeType="XML"
+      attributeName="transform"
+      type="translate"
+      from="0 0" to="0 -25"
+      dur="250ms"
+      begin="mouseover" />
     <text x="125" y="290">{id: 'ghi', value: 8}</text>
     <circle cx="810" cy="300" r="17.88854381999832" fill="#279191"></circle>
     <line x1="435" x2="735" y1="290" y2="300" stroke-width="1" stroke="black"></line>
     <text x="810" y="300" class="centered">&lt;circle/&gt;</text>
   </g>
   <g class="thisIsAnExampleGroup">
+    <animateTransform
+      attributeType="XML"
+      attributeName="transform"
+      type="translate"
+      from="0 0" to="0 -25"
+      dur="250ms"
+      begin="mouseover" />
     <text x="125" y="370">{id: 'jkl', value: 3}</text>
     <circle cx="810" cy="400" r="10.95445115010332" fill="#279191"></circle>
     <line x1="435" x2="735" y1="370" y2="400" stroke-width="1" stroke="black"></line>
