@@ -462,18 +462,6 @@ The other key lesson I've learned through building complex interactive data visu
 Note:
 What I've found most useful is to keep the question of "How much am I changing the DOM?" at the front of my mind when I'm working. Whenever the answer is "a lot", then I start to think about what I could do to avoid changing it that much. Can I aggregate the data or smooth it so that I'm creating or modifying fewer nodes in the DOM? If I'm coding an interaction that involves simultaneously inserting many new nodes and removing stale ones in response to an interaction, is there a way I can *recycle* the nodes I'm due to remove instead of trashing them, thereby reducing the number of new nodes I have to add, either partially or entirely? 
 
-<!-- TODO: add a slide illustrating aggregation as a solution - that is, a heat map? -->
-
-
-### node reuse example
-
-[@gmaclennan's fast long-scrolling image grid](http://bl.ocks.org/gmaclennan/11130600 'bl.ocks: Fast long-scrolling image grid')
-
-<iframe width="960px" height="455px" seamless data-src="http://bl.ocks.org/gmaclennan/raw/11130600/">
-
-Note:
-Here's a great example from bl.ocks illustrating node reuse. As the user scrolls in this image grid, instead of creating new rows as they come into view and destroying the old rows, the strategy is to relocate the old rows into the position(s) where new rows are needed. The result is a fast-scrolling, very-large grid.
-
 
 ### dealing with large datasets
 
