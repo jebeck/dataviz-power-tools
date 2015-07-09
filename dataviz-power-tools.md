@@ -543,3 +543,9 @@ The original use case for PourOver is essentially client-side faceted search. If
 
 
 ### thank you!
+
+- slides: [janabeck.com/dataviz-power-tools/](http://janabeck.com/dataviz-power-tools/)
+- examples: [bl.ocks.org/jebeck](http://bl.ocks.org/jebeck)
+- (et cetera...)
+   + GitHub: [jebeck](https://github.com/jebeck)
+   + Twitter: [@iPancreas](https://twitter.com/iPancreas)
